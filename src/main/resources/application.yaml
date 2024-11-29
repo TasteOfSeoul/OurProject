@@ -1,3 +1,18 @@
 spring:
   application:
     name: TasteOfSeoul
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3306
+    username: springdbuser
+    password: springdbuser
+  mvc:
+    view:
+     prefix: WEB-INF/view/
+     suffix: .jsp
+
+mybatis:
+  mapper-locations: classpath:mybatis/mapper/mapper.xml
+  type-aliases-package: com.example.domain
+  configuration:
+    map-underscore-to-camel-case: true
