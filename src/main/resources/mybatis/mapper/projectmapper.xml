@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD MyBatis Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<!-- 연결하려는 mapper interface의 클래스명까지 써야함. -->
+<mapper namespace="tasteone.TasteOfSeoul.com.example.mapper.projectMapper">
+
+    <select id="restaurantName" resultMap="restaurantMap">
+        select  * from gangnam where 음식점 = #{name} or 음식점 like concat('%', #{name}, '%') LIMIT 1
+    </select>
+
+    <select id="restaurantData" resultMap="restaurantMap">
+        select * from gangnam
+    </select>
+
+
+    <resultMap id="restaurantMap" type="tasteone.TasteOfSeoul.com.example.domain.RestaurantVO">
+        <result property="restaurantName" column="음식점"/>
+        <result property="addr" column="주소" />
+        <result property="category" column="음식카테고리"/>
+        <result property="latitude" column="위도" />
+        <result property="longitude" column="경도" />
+        <result property="open" column="오픈" />
+        <result property="close" column="마감" />
+        <result property="number" column="연락처" />
+
+    </resultMap>
+
+
+
+</mapper>
