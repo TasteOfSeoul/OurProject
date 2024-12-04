@@ -3,8 +3,9 @@ package tasteone.TasteOfSeoul.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tasteone.TasteOfSeoul.domain.testVO;
-import tasteone.TasteOfSeoul.mapper.testMapper;
+import tasteone.TasteOfSeoul.domain.RestaurantVO;
+import tasteone.TasteOfSeoul.mapper.projectMapper;
+
 
 import java.util.List;
 
@@ -12,9 +13,22 @@ import java.util.List;
 public class MyService {
 
     @Autowired
-    testMapper testMapper;
+    projectMapper mapper;
 
-    public List<testVO> getList() {
-        return testMapper.getList();
+
+    public RestaurantVO getRestaurantName(String name) {   //입력받은 음식점에 대한 정보 조회
+        System.out.println("입력받은 값 : " + name);
+        RestaurantVO restaurantVO = mapper.restaurantName(name);
+
+        System.out.println("db에 저장된 값 : " + restaurantVO.getRestaurantName());
+        return restaurantVO;
     }
+
+
+    public List<RestaurantVO> getRestaurantData() { //음식점 정보 전체 조회
+            return mapper.restaurantData();
+        }
+
+
+
 }
