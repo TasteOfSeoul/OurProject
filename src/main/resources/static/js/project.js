@@ -410,6 +410,11 @@ const dongCoordinates = {
 // 모달 열기
 regionSelectBtn.addEventListener("click", () => {
     regionModal.classList.remove("hidden");
+
+    // 구 선택 초기화
+    guSelector.value = ""; // 기본값 설정
+    dongSelector.innerHTML = "<option value='' disabled selected>동 선택</option>";
+    dongSelector.disabled = true; // 동 선택 비활성화
 });
 
 // 모달 닫기
