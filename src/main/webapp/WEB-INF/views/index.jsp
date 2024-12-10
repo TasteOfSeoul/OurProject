@@ -12,6 +12,6 @@
 <div class="main-message">맛으로 떠나는 서울 탐험, 지금 바로 시작하세요!</div>
 
 <!-- GO 버튼 -->
-<a href="/map" class="go-to-map-btn">GO</a>
+<a href="/restaurant/map" class="go-to-map-btn">GO</a>
 </body>
 </html>
