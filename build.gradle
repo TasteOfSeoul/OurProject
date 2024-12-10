@@ -45,6 +45,12 @@ dependencies {
 	implementation "jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api"  //스프링부트 3.0 이상
 	implementation "org.glassfish.web:jakarta.servlet.jsp.jstl" //스프링부트 3.0 이상
 
+	implementation 'org.mariadb.jdbc:mariadb-java-client:3.1.2'  // MariaDB 드라이버
+	implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4:1.16'  // log4jdbc
+	implementation 'org.seleniumhq.selenium:selenium-java:4.10.0' // 최신 버전 사용
+	implementation 'io.github.bonigarcia:webdrivermanager:5.5.0'  //WebDriverManager
+	implementation group: 'org.lazyluke', name: 'log4jdbc-remix', version: '0.2.7'
+
 }
 
 tasks.named('test') {
