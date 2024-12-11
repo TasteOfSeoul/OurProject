@@ -435,3 +435,179 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+
+
+/////////////////////////////////////////////////////////////////
+//cluster
+
+
+let clusters = []; // 클러스터 저장 배열
+
+// 기존 클러스터 및 마커 초기화
+function clearClusters() {
+    clusters.forEach(cluster => cluster.setMap(null)); // 기존 클러스터 제거
+    clusters = [];
+    markers.forEach(marker => marker.setMap(null)); // 기존 마커 제거
+}
+// 겹쳐진 마커의 위치를 약간씩 조정하는 함수
+function adjustMarkerPositions() {
+    const markerPositionMap = new Map();
+
+    markers.forEach(marker => {
+        const posKey = `${marker.getPosition().lat().toFixed(6)},${marker.getPosition().lng().toFixed(6)}`;
+
+        if (markerPositionMap.has(posKey)) {
+            const count = markerPositionMap.get(posKey) + 1;
+            markerPositionMap.set(posKey, count);
+
+            // 위치를 조금씩 조정 (원형으로 퍼지도록)
+            const angle = (Math.PI * 2) * (count / 10); // 마커가 많아질수록 분산
+            const offsetLat = Math.cos(angle) * 0.00005; // 조정 크기
+            const offsetLng = Math.sin(angle) * 0.00005;
+            const newPos = new naver.maps.LatLng(
+                marker.getPosition().lat() + offsetLat,
+                marker.getPosition().lng() + offsetLng
+            );
+
+            marker.setPosition(newPos); // 마커 위치 조정
+        } else {
+            markerPositionMap.set(posKey, 0);
+        }
+    });
+}
+
+// 줌 레벨에 따른 클러스터링 처리
+function updateMarkers() {
+    const zoomLevel = map.getZoom();
+    clearClusters();
+    adjustMarkerPositions()
+    if (zoomLevel <= 10) {
+        const clusterCenter = new naver.maps.LatLng(37.5265, 127.03);
+
+        // Map을 이용한 중복 제거
+        const markerMap = new Map();
+        markers.forEach(marker => {
+            const positionKey = `${marker.getPosition().lat()}-${marker.getPosition().lng()}`;
+            if (!markerMap.has(positionKey)) {
+                markerMap.set(positionKey, marker);
+            }
+        });
+
+        const uniqueMarkers = Array.from(markerMap.values());
+        const markerCount =  uniqueMarkers.length;// 중복 제거된 마커 수
+
+        const nationwideMarker = new naver.maps.Marker({
+            position: clusterCenter,
+            map: map,
+            icon: {
+                content: `
+                <div style="
+                    background-color: rgba(123, 104, 238, 0.7);
+                    color: white;
+                    border-radius: 50%;
+                    width: 60px;
+                    height: 60px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-weight: bold;
+                    font-size: 16px;">
+                    ${markerCount}
+                </div>
+            `,
+                anchor: new naver.maps.Point(30, 30)
+            }
+        });
+
+        clusters.push(nationwideMarker);
+
+        naver.maps.Event.addListener(nationwideMarker, 'click', () => {
+            map.setCenter(clusterCenter);
+            map.setZoom(11);
+        });
+    } else if (zoomLevel >10 && zoomLevel <= 13) {
+        // 11~13 구 단위 클러스터링 (그리드 방식)
+        const gridSize = 0.02; // 격자 크기 (위도/경도 단위)
+        const mapBounds = map.getBounds(); // 현재 지도 경계
+        const { minLat, minLng, maxLat, maxLng } = {
+            minLat: mapBounds._sw.lat(),
+            minLng: mapBounds._sw.lng(),
+            maxLat: mapBounds._ne.lat(),
+            maxLng: mapBounds._ne.lng()
+        };
+
+        const gridMap = new Map();
+
+        markers.forEach(marker => {
+            const markerPos = marker.getPosition();
+            const gridX = Math.floor((markerPos.lat() - minLat) / gridSize);
+            const gridY = Math.floor((markerPos.lng() - minLng) / gridSize);
+            const gridKey = `${gridX}-${gridY}`;
+
+            if (!gridMap.has(gridKey)) {
+                gridMap.set(gridKey, []);
+            }
+            gridMap.get(gridKey).push(marker);
+        });
+
+        // 클러스터 마커 생성
+        gridMap.forEach((gridMarkers, gridKey) => {
+            const uniqueMarkers = Array.from(new Set(gridMarkers.map(marker => marker.getPosition().toString())))
+                .map(pos => {
+                    return markers.find(marker => marker.getPosition().toString() === pos);
+                });
+            const markerCount =  uniqueMarkers.length; // 중복 제거된 마커 수
+
+            const gridCenter = calculateGridCenter(uniqueMarkers);
+            const clusterMarker = new naver.maps.Marker({
+                position: new naver.maps.LatLng(gridCenter.lat, gridCenter.lng),
+                map: map,
+                icon: {
+                    content: `
+                        <div style="
+                            background-color: rgba(123, 104, 238, 0.7);
+                            color: white;
+                            border-radius: 50%;
+                            width: 50px;
+                            height: 50px;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            font-weight: bold;
+                            font-size: 14px;">
+                            ${markerCount}
+                        </div>
+                    `,
+                    anchor: new naver.maps.Point(25, 25)
+                }
+            });
+
+            clusters.push(clusterMarker);
+
+            // 클러스터 클릭 이벤트
+            naver.maps.Event.addListener(clusterMarker, 'click', () => {
+                map.setCenter(clusterMarker.getPosition());
+                map.setZoom(14); // 줌 레벨 확대
+            });
+        });
+    } else if (zoomLevel >= 14) {
+        // 14 이상 개별 마커 표시
+        markers.forEach(marker => marker.setMap(map));
+    }
+
+}
+
+// 격자 중심 좌표 계산
+function calculateGridCenter(uniqueMarkers) {
+    const totalLat = uniqueMarkers.reduce((sum, marker) => sum + marker.getPosition().lat(), 0);
+    const totalLng = uniqueMarkers.reduce((sum, marker) => sum + marker.getPosition().lng(), 0);
+    return {
+        lat: totalLat / uniqueMarkers.length,
+        lng: totalLng / uniqueMarkers.length
+    };
+}
+
+// 지도 줌 이벤트 리스너 추가
+naver.maps.Event.addListener(map, 'zoom_changed', updateMarkers);
+
