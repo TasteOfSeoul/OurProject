@@ -127,6 +127,8 @@ guSelector.addEventListener("change", () => {
 // 지역 선택 완료
 confirmRegionBtn.addEventListener("click", () => {
     let selectedGu = guSelector.value;
+    let selectedGuData = guSelector.value;
+
     if(selectedGu==="gangnam"){
         selectedGu = "강남구";
     }else if(selectedGu==="gangdong"){
@@ -146,7 +148,13 @@ confirmRegionBtn.addEventListener("click", () => {
 
     if (selectedGu && selectedDong) {
 
+        const coordinates = dongCoordinates[selectedGuData][selectedDong];
+
+        GLOBAL_LATITUDE = coordinates.lat;
+        GLOBAL_LONGITUDE = coordinates.lng;
+
         restaurantList(`${selectedGu} ${selectedDong}`);
+
 
         regionModal.classList.add("hidden");
     } else {

@@ -2,6 +2,7 @@ loc = document.getElementById("loc");
 search = document.getElementById("search");
 myloc = document.getElementById("myloc");
 var marker = null;
+var mylocMarker = null;
 
 let GLOBAL_LATITUDE =  37.5172;
 let GLOBAL_LONGITUDE = 127.0413;
@@ -13,6 +14,8 @@ let restaurantData = [];
 let keyword = "";
 let searchCategory ="";
 let selectedDistance = "1km";
+
+var mylocFlag = -1;
 
 //입력창 비우기
 reset.addEventListener("click", function() {
@@ -66,11 +69,19 @@ document.querySelectorAll('input[name="searchCategory"]').forEach(radio => {
 //나의 위치
 myloc.addEventListener("click", function() {
     // 현재 위치를 가져오는 기능 추가
+    //navigator.geolocation : HTML5 Geolocation API 에서 제공하는 객체
+    // 주로 자바스크립트를 통해 사용자의 위치 정보를 가져올 때 사용됨.
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
+
+        // 첫번째 : 현재위치를 가져왔을 때 처리할 함수
+        // 두번째 : 위치정보를 가져오는데 실패한 경우 처리 함수
+        // 세번째 : 옵션
+        //getCurrentPosition ->위치를 한 번만 가져옴.
+        //watchPosition -> 위치가 변할 때마다 지속적으로 위치 정보를 제공
+        navigator.geolocation.watchPosition( function(position) {
             // 사용자의 실제 위치
-            const userLat = position.coords.latitude;
-            const userLng = position.coords.longitude;
+            const userLat = position.coords.latitude;   //현재 조회한 위치의 위도
+            const userLng = position.coords.longitude;  // 현재 조회한 위치의 경도
 
             console.log("* 나의 위치 :", userLat, userLng);
 
@@ -80,12 +91,18 @@ myloc.addEventListener("click", function() {
             // 이전 마커 및 데이터 초기화
             clearMapData();
 
+            mylocFlag = 1;  //현재 위치조회 마커 생성을 위한 플래그 지정  (389번줄)
             // 현 위치를 기준으로 식당 목록 가져오기
             restaurantList();
         }, function(error) {
             console.error("위치 정보를 가져오는 데 실패했습니다.", error);
             alert("위치 정보를 가져올 수 없습니다.");
-        });
+        }, {
+                enableHighAccuracy: true, // 정확도 우선모드
+                timeout : 10000, //10초 이내에 응답이 없으면 에러 발생
+                maximumAge : 3000 // 최대 3초까지 캐시된 위치 허용
+            }
+        );
     } else {
         alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
     }
@@ -121,6 +138,13 @@ function clearMapData() {
         marker.setMap(null);
         marker = null;
     }
+
+    //현재 위치 마커 제거
+    if(mylocMarker) {
+        mylocMarker.setMap(null);
+        mylocMarker = null;
+    }
+
 
     //console.log("기존 마커와 데이터 초기화 완료");
 }
@@ -361,6 +385,19 @@ function restaurantList(getAddress) {
                     document.getElementById(`restaurantText-${restaurant.restaurantId}`).click();
                 })
             });
+
+            if(mylocFlag == 1) { //현위치 조회를 했을 때
+                mylocMarker = new naver.maps.Marker({
+                    position : new naver.maps.LatLng(GLOBAL_LATITUDE, GLOBAL_LONGITUDE),
+                    map : map,
+                    icon: {
+                        url: "https://t1.daumcdn.net/localimg/localimages/07/2018/mw/m640/ico_marker.png", // 현재 위치와 비슷한 아이콘 URL
+                        scaledSize: new naver.maps.Size(30, 30)
+                    }
+                });
+                mylocFlag = -1;
+            }
+
 
             // 지도 중심 설정
             map.setCenter(new naver.maps.LatLng(GLOBAL_LATITUDE, GLOBAL_LONGITUDE));
