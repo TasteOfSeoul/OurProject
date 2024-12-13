@@ -78,7 +78,7 @@ myloc.addEventListener("click", function() {
         // 세번째 : 옵션
         //getCurrentPosition ->위치를 한 번만 가져옴.
         //watchPosition -> 위치가 변할 때마다 지속적으로 위치 정보를 제공
-        navigator.geolocation.watchPosition( function(position) {
+        navigator.geolocation.getCurrentPosition( function(position) {
             // 사용자의 실제 위치
             const userLat = position.coords.latitude;   //현재 조회한 위치의 위도
             const userLng = position.coords.longitude;  // 현재 조회한 위치의 경도
@@ -101,7 +101,8 @@ myloc.addEventListener("click", function() {
                 enableHighAccuracy: true, // 정확도 우선모드
                 timeout : 10000, //10초 이내에 응답이 없으면 에러 발생
                 maximumAge : 3000 // 최대 3초까지 캐시된 위치 허용
-            }
+        }
+
         );
     } else {
         alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
@@ -176,6 +177,8 @@ function restaurantList(getAddress) {
             console.log("Search Address:", searchAddress);
 
             console.log(" restaurantData 크기   ===: ",  restaurantData.length);
+
+
             const filteredRestaurants = filterRestaurants(GLOBAL_LATITUDE, GLOBAL_LONGITUDE, restaurantData);
             // 지도 초기화 (필요 시)
             clearMapData();
