@@ -153,7 +153,7 @@ confirmRegionBtn.addEventListener("click", () => {
         GLOBAL_LATITUDE = coordinates.lat;
         GLOBAL_LONGITUDE = coordinates.lng;
 
-        restaurantList(`${selectedGu} ${selectedDong}`);
+        restaurantList(`${selectedGu}`);
 
 
         regionModal.classList.add("hidden");
